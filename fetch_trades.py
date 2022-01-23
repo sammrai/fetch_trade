@@ -21,24 +21,24 @@ symbols=args.symbols
 
 
 async def print_ohlcv(exchange, symbol):
-    trades = pd.DataFrame()
+    last_id=0
     while True:
-        date = datetime.now().strftime("%Y%m%d")
-        fname = f"{exchange}_{symbol.replace('/','_')}_{date}.txt"
-        fname = os.path.join(args.dir,fname)
-
         update = await exchange.fetch_trades(symbol=symbol,limit=100)
         update = pd.DataFrame(update).sort_index()
         update = update.set_index("id")
         update["exchange"]=exchange.name
-        update["id"]=update.index
+        update["id"]=update.index.astype("int")
         update = update[["symbol","side","amount","price","datetime","exchange","id"]]
-        update = update[~update.index.isin(trades.index)]
-        trades = pd.concat([trades,update]).iloc[-100:]
+        update = update[update.index>last_id]
+
         if len(update)>0:
+            date = datetime.now().strftime("%Y%m%d")
+            fname = f"{exchange}_{symbol.replace('/','_')}_{date}.txt"
+            fname = os.path.join(args.dir,fname)
+            last_id = update.index[-1]
             with open(fname,"a") as f:
-                s = update.to_string(header=False,index=False)
-                f.write(s+"\n")
+                s = update.to_string(header=False,index=False)+"\n"
+                f.write(s)
         time.sleep(1)
 
 async def main():
@@ -49,9 +49,11 @@ async def main():
         for symbol in symbols:
             if symbol not in exchange.symbols : continue
             cors.append(print_ohlcv(exchange,symbol=symbol))
-    await asyncio.gather(*cors)
 
-    for exchange in exchanges:
-        await exchange.close()
+    try:
+        await asyncio.gather(*cors)
+    except KeyboardInterrupt:
+        for exchange in exchanges:
+            await exchange.close()
 
 asyncio.get_event_loop().run_until_complete(main())
