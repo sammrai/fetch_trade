@@ -3,17 +3,17 @@ a trade logger.
 
 # usage:
 docker run --rm sammrai/fetch_trade:latest [-h] --exchanges [EXCHANGES [EXCHANGES ...]] --symbols
-                      [SYMBOLS [SYMBOLS ...]] [--dir DIR]
+                      [SYMBOLS [SYMBOLS ...]] [--out OUT] [--loop LOOP]
 
 or run it in your environment:
 
 python fetch_trade.py [-h] --exchanges [EXCHANGES [EXCHANGES ...]] --symbols
-                      [SYMBOLS [SYMBOLS ...]] [--dir DIR]
+                      [SYMBOLS [SYMBOLS ...]] [--out OUT] [--loop LOOP]
 
 # example:
 
 ```
-$ docker run --rm -u$(id -u) -v $(pwd)/data:/data  sammrai/fetch_trade  --exchanges gmocoin --symbols BTC/JPY --dir /data
+$ docker run --rm -u$(id -u) -v $(pwd)/data:/data  sammrai/fetch_trade  --exchanges gmocoin --symbols BTC/JPY --out /data
 
 // gmocoin_BTC_JPY_20220123.txt
 BTC/JPY  buy 0.01 4004113.0 2022-01-23T15:46:32.483Z gmocoin 16429527924830
@@ -78,5 +78,8 @@ available exchanges: ['aax', 'aofex', 'ascendex',
 an example of symbols: ['BTC/USD', 'ETH/USD',
 'ETH/JPY', 'BTC/JPY', 'XRP/JPY']
 
-## --dir DIR
-log output directry
+## --out OUT
+If value other than stdout, the log will be output under the specified directory.
+
+## --loop LOOP
+loop num. If 0, loop infinitely.

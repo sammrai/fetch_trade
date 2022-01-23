@@ -10,7 +10,9 @@ import os
 parser = argparse.ArgumentParser(description='an ohlcv fetcher.')
 parser.add_argument('--exchanges', required=True, nargs="*", type=str) 
 parser.add_argument('--symbols', required=True, nargs="*", type=str)
-parser.add_argument('--dir', default="./", type=str)
+parser.add_argument('--loop', default=0, type=int)
+parser.add_argument('--out', default="stdout", type=str, help="If value other than stdout, the log will be output under the specified directory.")
+
 args = parser.parse_args()
 
 exchanges = {e:{"rate_limit" : 1} for e in args.exchanges}
@@ -19,26 +21,38 @@ exchanges = [getattr(ccxt.ccxt_async,exchange)(keys) for exchange,keys in exchan
 keys=["time","open","high","low","close","volume"]
 symbols=args.symbols
 
+def xrange(range=0):
+    c = 0
+    while True:
+        yield c
+        c += 1
+        if c==range:
+            break
 
 async def print_ohlcv(exchange, symbol):
     last_id=0
-    while True:
+    for _ in xrange(args.loop):
         update = await exchange.fetch_trades(symbol=symbol,limit=100)
         update = pd.DataFrame(update).sort_index()
-        update = update.set_index("id")
         update["exchange"]=exchange.name
-        update["id"]=update.index.astype("int")
-        update = update[["symbol","side","amount","price","datetime","exchange","id"]]
+        update["timestamp"]=update["timestamp"].astype("int")
+        update = update.set_index("timestamp")
+        update["timestamp"]=update.index
+        update = update[["symbol","side","amount","price","datetime","exchange","timestamp"]]
         update = update[update.index>last_id]
 
         if len(update)>0:
-            date = datetime.now().strftime("%Y%m%d")
-            fname = f"{exchange}_{symbol.replace('/','_')}_{date}.txt"
-            fname = os.path.join(args.dir,fname)
+            out = update.to_string(header=False,index=False)+"\n"
             last_id = update.index[-1]
-            with open(fname,"a") as f:
-                s = update.to_string(header=False,index=False)+"\n"
-                f.write(s)
+
+            if args.out == "stdout":
+                print(out,end="")
+            else:
+                date = datetime.now().strftime("%Y%m%d")
+                fname = f"{exchange}_{symbol.replace('/','_')}_{date}.txt"
+                fname = os.path.join(args.out,fname)
+                with open(fname,"a") as f:
+                    f.write(out)
         time.sleep(1)
 
 async def main():
@@ -53,7 +67,9 @@ async def main():
     try:
         await asyncio.gather(*cors)
     except KeyboardInterrupt:
-        for exchange in exchanges:
-            await exchange.close()
+        pass
+
+    for exchange in exchanges:
+        await exchange.close()
 
 asyncio.get_event_loop().run_until_complete(main())
