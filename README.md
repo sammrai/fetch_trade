@@ -13,7 +13,7 @@ python fetch_trade.py [-h] --exchanges [EXCHANGES [EXCHANGES ...]] --symbols
 # example:
 
 ```
-$ docker run --rm -u$(id -u) -v $(pwd)/data:/data  sammrai/fetch_trade  --exchanges gmocoin --symbols BTC/JPY --out /data
+$ docker run --restart=always -d -u$(id -u) -v $(pwd)/data:/data sammrai/fetch_trade --exchanges liquid bitflyer coincheck gmocoin --symbols BTC/JPY ETH/JPY XRP/JPY --out /data
 
 // gmocoin_BTC_JPY_20220123.txt
 BTC/JPY  buy 0.01 4004113.0 2022-01-23T15:46:32.483Z gmocoin 16429527924830
