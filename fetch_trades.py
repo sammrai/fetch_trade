@@ -15,7 +15,7 @@ parser.add_argument('--out', default="stdout", type=str, help="If value other th
 
 args = parser.parse_args()
 
-exchanges = {e:{"rate_limit" : 1} for e in args.exchanges}
+exchanges = {e:{} for e in args.exchanges}
 exchanges = [getattr(ccxt.ccxt_async,exchange)(keys) for exchange,keys in exchanges.items()]
 
 keys=["time","open","high","low","close","volume"]
@@ -34,7 +34,8 @@ async def print_ohlcv(exchange, symbol):
     for _ in xrange(args.loop):
         try:
             update = await exchange.fetch_trades(symbol=symbol,limit=100)
-        except ccxt.RequestTimeout:
+        except Exception as e:
+            print(f"WARNING: {e}")
             continue
         update = pd.DataFrame(update).sort_index()
         update["exchange"]=exchange.name
@@ -56,7 +57,7 @@ async def print_ohlcv(exchange, symbol):
                 fname = os.path.join(args.out,fname)
                 with open(fname,"a") as f:
                     f.write(out)
-        time.sleep(3)
+        time.sleep(1)
 
 async def main():
     cors=[]
