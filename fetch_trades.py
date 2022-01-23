@@ -32,7 +32,10 @@ def xrange(range=0):
 async def print_ohlcv(exchange, symbol):
     last_id=0
     for _ in xrange(args.loop):
-        update = await exchange.fetch_trades(symbol=symbol,limit=100)
+        try:
+            update = await exchange.fetch_trades(symbol=symbol,limit=100)
+        except ccxt.RequestTimeout:
+            continue
         update = pd.DataFrame(update).sort_index()
         update["exchange"]=exchange.name
         update["timestamp"]=update["timestamp"].astype("int")
