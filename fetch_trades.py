@@ -67,7 +67,7 @@ async def print_ohlcv(exchange, symbol):
                 fname=get_fname(args.out, exchange, symbol)
                 with open(fname,"a") as f:
                     f.write(out)
-        time.sleep(1)
+        time.sleep(5)
 
 async def main():
     cors=[]
