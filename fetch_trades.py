@@ -46,7 +46,7 @@ async def print_ohlcv(exchange, symbol):
         update = update[update.index>last_id]
 
         if len(update)>0:
-            out = update.to_string(header=False,index=False)+"\n"
+            out = update.to_csv(index=False, header=False, sep=',')
             last_id = update.index[-1]
 
             if args.out == "stdout":
