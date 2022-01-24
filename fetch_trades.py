@@ -50,7 +50,7 @@ async def print_ohlcv(exchange, symbol):
                 print(out,end="")
             else:
                 date = datetime.now().strftime("%Y%m%d")
-                fname = f"{exchange}_{symbol.replace('/','_')}_{date}.txt"
+                fname = f"{exchange.name}_{symbol.replace('/','_')}_{date}.txt"
                 fname = os.path.join(args.out,fname)
                 with open(fname,"a") as f:
                     f.write(out)
@@ -62,7 +62,9 @@ async def main():
         await exchange.load_markets()
 
         for symbol in args.symbols:
-            if symbol not in exchange.symbols : continue
+            if symbol not in exchange.symbols :
+                print(f"WARNING {symbol} is not supoport on {exchange.name}")
+                continue
             cors.append(print_ohlcv(exchange,symbol=symbol))
 
     try:
