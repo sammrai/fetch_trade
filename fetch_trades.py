@@ -12,6 +12,7 @@ parser.add_argument('--exchanges', required=True, nargs="*", type=str)
 parser.add_argument('--symbols', required=True, nargs="*", type=str)
 parser.add_argument('--loop', default=0, type=int)
 parser.add_argument('--out', default="stdout", type=str, help="If value other than stdout, the log will be output under the specified directory.")
+parser.add_argument('--reflesh_rate', default=5, type=int)
 
 args = parser.parse_args()
 
@@ -67,7 +68,7 @@ async def print_ohlcv(exchange, symbol):
                 fname=get_fname(args.out, exchange, symbol)
                 with open(fname,"a") as f:
                     f.write(out)
-        time.sleep(5)
+        time.sleep(args.reflesh_rate)
 
 async def main():
     cors=[]
