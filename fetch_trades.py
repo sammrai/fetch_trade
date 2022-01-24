@@ -26,8 +26,23 @@ def xrange(range=0):
         if c==range:
             break
 
+def get_last_id(fname):
+    try:
+        df = pd.read_csv(fname,header=None)
+        return df[6].values[-1]
+    except:
+        return 0
+
+def get_fname(out, exchange, symbol):
+    date = datetime.now().strftime("%Y%m%d")
+    fname = f"{exchange.name}_{symbol.replace('/','_')}_{date}.txt"
+    fname = os.path.join(out,fname)
+    return fname
+
 async def print_ohlcv(exchange, symbol):
-    last_id=0
+    # resume last id when file exists.
+    last_id = get_last_id(get_fname(args.out, exchange, symbol))
+
     for _ in xrange(args.loop):
         try:
             update = await exchange.fetch_trades(symbol=symbol,limit=100)
@@ -49,9 +64,7 @@ async def print_ohlcv(exchange, symbol):
             if args.out == "stdout":
                 print(out,end="")
             else:
-                date = datetime.now().strftime("%Y%m%d")
-                fname = f"{exchange.name}_{symbol.replace('/','_')}_{date}.txt"
-                fname = os.path.join(args.out,fname)
+                fname=get_fname(args.out, exchange, symbol)
                 with open(fname,"a") as f:
                     f.write(out)
         time.sleep(1)
