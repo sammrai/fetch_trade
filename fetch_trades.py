@@ -18,9 +18,6 @@ args = parser.parse_args()
 exchanges = {e:{} for e in args.exchanges}
 exchanges = [getattr(ccxt.ccxt_async,exchange)(keys) for exchange,keys in exchanges.items()]
 
-keys=["time","open","high","low","close","volume"]
-symbols=args.symbols
-
 def xrange(range=0):
     c = 0
     while True:
@@ -64,7 +61,7 @@ async def main():
     for exchange in exchanges:
         await exchange.load_markets()
 
-        for symbol in symbols:
+        for symbol in args.symbols:
             if symbol not in exchange.symbols : continue
             cors.append(print_ohlcv(exchange,symbol=symbol))
 
